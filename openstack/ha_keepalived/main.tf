@@ -2,6 +2,10 @@ provider "openstack" {
   cloud = terraform.workspace
 }
 
+terraform {
+  required_version = ">= 0.12"
+}
+
 locals {
   rules_all = [
     { description = "ICMP (Ping)", protocol = "icmp" },
