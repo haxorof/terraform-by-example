@@ -17,8 +17,8 @@ locals {
     { description = "UDP", protocol = "udp" },
   ]
   rules_ingress_only = []
-  rules_ingress = concat(local.rules_all, local.rules_ingress_only)
-  rules_egress  = concat(local.rules_all, local.rules_egress_only)
+  rules_ingress      = concat(local.rules_all, local.rules_ingress_only)
+  rules_egress       = concat(local.rules_all, local.rules_egress_only)
 }
 
 module "example_sg" {
@@ -33,12 +33,12 @@ module "example_net" {
   source = "haxorof/network/openstack"
   name   = "example-ha-keepalived"
   router = {
-    create = true
-    name = "example-ha-keepalived"
+    create                = true
+    name                  = "example-ha-keepalived"
     external_network_name = var.external_net
   }
   subnets = [
-    { cidr = "192.168.1.0/24", ip_version = 4, router_id = "@self" },
+    { cidr = "192.168.1.0/24", router_id = "@self" },
   ]
 }
 
@@ -106,7 +106,7 @@ resource "openstack_compute_instance_v2" "example" {
   }
 
   network {
-    port = element(openstack_networking_port_v2.example.*.id, count.index)
+    port = openstack_networking_port_v2.example[count.index].id
   }
 
 }
@@ -133,12 +133,12 @@ data "template_file" "example" {
 resource "null_resource" "example" {
   count = var.nr_of_instances
   triggers = {
-    access_ip = element(openstack_compute_instance_v2.example.*.access_ip_v4, count.index)
+    access_ip = openstack_compute_instance_v2.example[count.index].access_ip_v4
   }
 
   connection {
     type = "ssh"
-    host = element(openstack_compute_instance_v2.example.*.access_ip_v4, count.index)
+    host = openstack_compute_instance_v2.example[count.index].access_ip_v4
     user = var.ssh_user
     private_key = openstack_compute_keypair_v2.example.private_key
     bastion_host = openstack_networking_floatingip_associate_v2.example_bastion.floating_ip
@@ -152,7 +152,7 @@ resource "null_resource" "example" {
   }
 
   provisioner "file" {
-    content = element(data.template_file.example.*.rendered, count.index)
+    content = data.template_file.example[count.index].rendered
     destination = "/var/tmp/keepalived.conf"
   }
 
