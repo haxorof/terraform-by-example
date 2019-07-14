@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: Hardening
+      include_role:
+        name: openstack.ansible-hardening
+      vars:
+        ansible_become: yes

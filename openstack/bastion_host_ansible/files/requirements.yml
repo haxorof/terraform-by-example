@@ -1,0 +1,3 @@
+- src: https://github.com/openstack/ansible-hardening.git
+  version: master
+  name: openstack.ansible-hardening
